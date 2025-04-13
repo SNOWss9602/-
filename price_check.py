@@ -30,19 +30,19 @@ def fetch_price():
     driver.get(URL)
 
     try:
-        # 페이지에서 'Plus' 가격 정보가 나타날 때까지 대기 (최대 20초)
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//*[@id='plus']/div[3]/ul/li/span[1]"))
+        # 페이지에서 가격 정보가 나타날 때까지 대기 (최대 30초)
+        WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[3]/div[1]/main/div[1]/section[1]/div/div/div[1]/div/div/div[2]/div[3]/ul/li/span[2]"))
         )
-    except:
-        print("❌ 타임아웃: 가격 정보가 로드되지 않았습니다.")
+    except Exception as e:
+        print(f"❌ 타임아웃: 가격 정보가 로드되지 않았습니다. 에러: {e}")
         driver.quit()
         return ""
 
     # 정확한 XPath를 사용하여 가격 정보 추출
     try:
         # 가격 정보를 포함하는 요소 찾기
-        price_elements = driver.find_elements(By.XPATH, "//*[@id='plus']/div[3]/ul/li/span[1]")
+        price_elements = driver.find_elements(By.XPATH, "/html/body/div[1]/div[3]/div[1]/main/div[1]/section[1]/div/div/div[1]/div/div/div[2]/div[3]/ul/li/span[2]")
         prices = [element.text for element in price_elements]
         driver.quit()
 
@@ -65,4 +65,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
