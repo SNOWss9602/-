@@ -30,17 +30,19 @@ def fetch_price():
     driver.get(URL)
 
     try:
-        # ⏳ 'Plus' 텍스트가 포함된 요소가 로드될 때까지 대기 (최대 10초)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Plus')]"))
+        # 페이지에서 'Plus' 가격 정보가 나타날 때까지 대기 (최대 20초)
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@id='plus']/div[3]/ul/li/span[1]"))
         )
     except:
         print("❌ 타임아웃: 가격 정보가 로드되지 않았습니다.")
+        driver.quit()
+        return ""
 
-    # 가격 정보가 들어있는 요소를 정확히 찾아서 텍스트 추출
+    # 정확한 XPath를 사용하여 가격 정보 추출
     try:
-        # 예시로 'price-value'라는 클래스명을 사용했다고 가정
-        price_elements = driver.find_elements(By.CLASS_NAME, "price-value")
+        # 가격 정보를 포함하는 요소 찾기
+        price_elements = driver.find_elements(By.XPATH, "//*[@id='plus']/div[3]/ul/li/span[1]")
         prices = [element.text for element in price_elements]
         driver.quit()
 
@@ -63,3 +65,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
