@@ -7,7 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 import requests
-import tempfile
 
 # 🎯 정확한 가격 페이지 URL
 URL = "https://openai.com/chatgpt/pricing"
@@ -21,9 +20,7 @@ def send_telegram_message(message):
 
 def fetch_price():
     options = Options()
-    # 임시 디렉토리로 user-data-dir을 설정하여 충돌을 방지
-    user_data_dir = tempfile.mkdtemp()  # 임시 디렉토리 생성
-    options.add_argument(f'--user-data-dir={user_data_dir}')
+    # user-data-dir을 설정하지 않음
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
