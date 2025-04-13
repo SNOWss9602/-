@@ -2,9 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-URL = "https://openai.com/chat"
-PRICE_KEYWORD = "ChatGPT Plus"
-
+URL = "https://openai.com/pricing"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
@@ -17,8 +15,12 @@ def fetch_price():
     response = requests.get(URL)
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text(separator="\n")
-    lines = [line.strip() for line in text.splitlines() if PRICE_KEYWORD in line]
-    return "\n".join(lines)
+    
+    # 가격 관련 텍스트 찾기
+    for line in text.splitlines():
+        if "ChatGPT" in line and "$" in line:
+            return line.strip()
+    return ""
 
 def main():
     current_price = fetch_price()
