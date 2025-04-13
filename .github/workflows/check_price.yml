@@ -1,8 +1,8 @@
-name: Check ChatGPT Plus Price
+name: Check ChatGPT Plus Price (Selenium)
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # 매일 오전 9시 UTC (한국은 오후 6시)
+    - cron: '0 9 * * *'  # 매일 오전 9시 UTC (한국 오후 6시)
   workflow_dispatch:
 
 jobs:
@@ -19,10 +19,24 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: |
+          pip install selenium requests
 
-      - name: Run script
+      - name: Set up Chrome and ChromeDriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+          wget -O chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip"
+          unzip chromedriver.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
+
+      - name: Run Selenium script
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python price_check.py
+        run: |
+          python price_check.py
