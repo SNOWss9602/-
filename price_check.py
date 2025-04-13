@@ -25,9 +25,9 @@ def fetch_price():
 def main():
     current_price = fetch_price()
     if current_price:
-        send_telegram_message(f"💡 ChatGPT Plus 가격 정보:\n\n{current_price}")
+        send_telegram_message(f"💡 ChatGPT Plus 가격 관련 정보:\n\n{current_price}")
     else:
-        send_telegram_message("❗ 가격 정보를 찾을 수 없습니다.")
+        send_telegram_message("❗ ChatGPT Plus 가격 정보를 찾을 수 없었습니다. 웹페이지 구조가 바뀌었을 수도 있어요.")
 
 if __name__ == "__main__":
     main()
