@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
 import requests
@@ -20,10 +20,10 @@ def fetch_price():
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     driver.get(URL)
 
-    time.sleep(5)  # JS 로딩 기다리기 (더 필요하면 늘릴 수 있음)
+    time.sleep(5)  # JS 로딩 기다리기
 
     text = driver.page_source
     driver.quit()
