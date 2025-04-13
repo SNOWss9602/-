@@ -20,7 +20,8 @@ def send_telegram_message(message):
 
 def fetch_price():
     options = Options()
-    options.add_argument('--headless')
+    # headless 모드를 비활성화하여 실제 브라우저 동작을 확인하도록 설정
+    # options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
@@ -30,8 +31,8 @@ def fetch_price():
     driver.get(URL)
 
     try:
-        # 페이지에서 가격 정보가 나타날 때까지 대기 (최대 30초)
-        WebDriverWait(driver, 30).until(
+        # 페이지에서 가격 정보가 나타날 때까지 대기 (최대 60초)
+        WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[3]/div[1]/main/div[1]/section[1]/div/div/div[1]/div/div/div[2]/div[3]/ul/li/span[2]"))
         )
     except Exception as e:
@@ -65,5 +66,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
