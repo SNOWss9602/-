@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
@@ -20,10 +21,12 @@ def fetch_price():
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-    driver.get(URL)
+    # ✅ Service 객체를 따로 생성
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
 
-    time.sleep(5)  # JS 로딩 기다리기
+    driver.get(URL)
+    time.sleep(5)
 
     text = driver.page_source
     driver.quit()
@@ -44,4 +47,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
