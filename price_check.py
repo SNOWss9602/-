@@ -8,7 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os
 import requests
 
-# 🎯 정확한 가격 페이지 URL
+# URL 및 Telegram 설정
 URL = "https://openai.com/chatgpt/pricing"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -19,10 +19,12 @@ def send_telegram_message(message):
     requests.post(telegram_api, data=data)
 
 def fetch_price():
+    # Chrome Headless 설정
     options = Options()
-    # user-data-dir을 설정하지 않음
+    options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("--disable-gpu")
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
@@ -30,36 +32,26 @@ def fetch_price():
     driver.get(URL)
 
     try:
-        # 페이지에서 가격 정보가 나타날 때까지 대기 (최대 60초)
-        WebDriverWait(driver, 60).until(
-            EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[3]/div[1]/main/div[1]/section[1]/div/div/div[1]/div/div/div[2]/div[3]/ul/li/span[2]"))
+        # XPath에 해당하는 요소가 로드될 때까지 최대 20초 대기
+        xpath = "//div[contains(@class, 'text-xl') and contains(text(), '$20')]"
+        element = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath))
         )
+        price_text = element.text
+        driver.quit()
+        return price_text
     except Exception as e:
-        print(f"❌ 타임아웃: 가격 정보가 로드되지 않았습니다. 에러: {e}")
         driver.quit()
-        return ""
-
-    # 정확한 XPath를 사용하여 가격 정보 추출
-    try:
-        # 가격 정보를 포함하는 요소 찾기
-        price_elements = driver.find_elements(By.XPATH, "/html/body/div[1]/div[3]/div[1]/main/div[1]/section[1]/div/div/div[1]/div/div/div[2]/div[3]/ul/li/span[2]")
-        prices = [element.text for element in price_elements]
-        driver.quit()
-
-        return "\n".join(prices)
-
-    except Exception as e:
-        print(f"❌ 가격 정보를 찾는 중 에러 발생: {e}")
-        driver.quit()
+        print("❌ 가격 정보를 찾지 못했습니다.", e)
         return ""
 
 def main():
     try:
-        price_info = fetch_price()
-        if price_info:
-            send_telegram_message(f"💰 ChatGPT 가격 정보 발견:\n\n{price_info}")
+        price = fetch_price()
+        if price:
+            send_telegram_message(f"✅ 현재 ChatGPT Plus 가격: {price}")
         else:
-            send_telegram_message("📭 가격 정보를 찾을 수 없습니다. 페이지 구조가 바뀌었을 수 있어요.")
+            send_telegram_message("⚠️ 가격 정보를 찾을 수 없습니다. 페이지 구조가 바뀌었을 수 있어요.")
     except Exception as e:
         send_telegram_message(f"❌ 에러 발생: {e}")
 
