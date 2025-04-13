@@ -1,16 +1,16 @@
-name: Check ChatGPT Plus Price
+name: Check ChatGPT Price
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # 매일 오전 9시 UTC (한국 시간 오후 6시)
-  workflow_dispatch:  # 수동 실행도 가능
+    - cron: "0 9 * * *"  # 매일 오전 9시 UTC (한국 시간 18시)
+  workflow_dispatch:
 
 jobs:
   check-price:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -20,12 +20,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install selenium requests webdriver-manager
+          pip install selenium webdriver-manager python-telegram-bot requests
 
-      - name: Run price check script
+      - name: Run price checker
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: |
-          python price_check.py
+        run: python main.py
 
