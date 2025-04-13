@@ -1,8 +1,11 @@
-import requests
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
 import os
+import requests
 
-URL = "https://openai.com/pricing"
+URL = "https://openai.com/chat"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
@@ -12,22 +15,33 @@ def send_telegram_message(message):
     requests.post(telegram_api, data=data)
 
 def fetch_price():
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.text, "html.parser")
-    text = soup.get_text(separator="\n")
-    
-    # 더 유연한 키워드로 검색
-    keywords = ["$20", "20 USD", "ChatGPT Plus", "subscribe", "subscription"]
-    matched_lines = [line.strip() for line in text.splitlines() if any(kw in line for kw in keywords)]
-    
-    return "\n".join(matched_lines)
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+
+    driver = webdriver.Chrome(options=options)
+    driver.get(URL)
+
+    time.sleep(5)  # JS 로딩 기다리기 (더 필요하면 늘릴 수 있음)
+
+    text = driver.page_source
+    driver.quit()
+
+    keywords = ["$20", "20 USD", "ChatGPT Plus", "subscription", "subscribe"]
+    found = [kw for kw in keywords if kw in text]
+    return "\n".join(found)
 
 def main():
-    current_price = fetch_price()
-    if current_price:
-        send_telegram_message(f"💡 ChatGPT Plus 가격 관련 정보:\n\n{current_price}")
-    else:
-        send_telegram_message("❗ ChatGPT Plus 가격 정보를 찾을 수 없었습니다. 웹페이지 구조가 바뀌었을 수도 있어요.")
+    try:
+        price_info = fetch_price()
+        if price_info:
+            send_telegram_message(f"💡 ChatGPT Plus 가격 관련 키워드 발견:\n\n{price_info}")
+        else:
+            send_telegram_message("❗ 가격 관련 키워드를 찾을 수 없습니다.")
+    except Exception as e:
+        send_telegram_message(f"❌ 에러 발생: {e}")
 
 if __name__ == "__main__":
     main()
+
