@@ -16,11 +16,11 @@ def fetch_price():
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text(separator="\n")
     
-    # 가격 관련 텍스트 찾기
-    for line in text.splitlines():
-        if "ChatGPT" in line and "$" in line:
-            return line.strip()
-    return ""
+    # 더 유연한 키워드로 검색
+    keywords = ["$20", "20 USD", "ChatGPT Plus", "subscribe", "subscription"]
+    matched_lines = [line.strip() for line in text.splitlines() if any(kw in line for kw in keywords)]
+    
+    return "\n".join(matched_lines)
 
 def main():
     current_price = fetch_price()
