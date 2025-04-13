@@ -5,8 +5,8 @@ import os
 URL = "https://openai.com/chat"
 PRICE_KEYWORD = "ChatGPT Plus"
 
-TELEGRAM_TOKEN = os.getenv("8171814256:AAGyBN1eLwbZS1l-9qkAxCW9VN294mTyGkw")
-CHAT_ID = os.getenv("-4606998554")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 def send_telegram_message(message):
     telegram_api = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
