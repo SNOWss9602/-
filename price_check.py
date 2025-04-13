@@ -1,11 +1,15 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
 import requests
 
+# 🎯 정확한 가격 페이지
 URL = "https://openai.com/chatgpt/pricing"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -25,30 +29,32 @@ def fetch_price():
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get(URL)
-    time.sleep(5)  # 렌더링 기다리기
 
-    text = driver.find_element("tag name", "body").text
+    try:
+        # ⏳ 'Plus' 텍스트가 나올 때까지 대기 (최대 10초)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Plus')]"))
+        )
+    except:
+        print("❌ 타임아웃: 가격 정보가 로드되지 않았습니다.")
+
+    page_text = driver.find_element(By.TAG_NAME, "body").text
     driver.quit()
 
-    print("💬 페이지에서 추출한 텍스트 일부:")
-    print(text[:1000])  # 처음 1000자만 미리보기
-
-    keywords = ["$20", "20 USD", "ChatGPT Plus", "Plus plan", "Upgrade to Plus", "USD", "per month"]
-    found = [kw for kw in keywords if kw in text]
+    # 🔍 관심 있는 키워드
+    keywords = ["$20", "20 USD", "ChatGPT Plus", "Plus plan", "per month", "subscription", "Upgrade"]
+    found = [kw for kw in keywords if kw in page_text]
     return "\n".join(found)
-
 
 def main():
     try:
         price_info = fetch_price()
         if price_info:
-            send_telegram_message(f"💡 ChatGPT Plus 가격 관련 키워드 발견:\n\n{price_info}")
+            send_telegram_message(f"💰 ChatGPT 가격 정보 발견:\n\n{price_info}")
         else:
-            send_telegram_message("❗ 가격 관련 키워드를 찾을 수 없습니다.")
+            send_telegram_message("📭 가격 정보를 찾을 수 없습니다. 페이지 구조가 바뀌었을 수 있어요.")
     except Exception as e:
         send_telegram_message(f"❌ 에러 발생: {e}")
 
 if __name__ == "__main__":
     main()
-
-
