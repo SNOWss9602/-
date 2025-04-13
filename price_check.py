@@ -21,19 +21,22 @@ def fetch_price():
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
-    # ✅ Service 객체를 따로 생성
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get(URL)
-    time.sleep(5)
+    time.sleep(5)  # 렌더링 기다리기
 
-    text = driver.page_source
+    text = driver.find_element("tag name", "body").text
     driver.quit()
 
-    keywords = ["$20", "20 USD", "ChatGPT Plus", "subscription", "subscribe"]
+    print("💬 페이지에서 추출한 텍스트 일부:")
+    print(text[:1000])  # 처음 1000자만 미리보기
+
+    keywords = ["$20", "20 USD", "ChatGPT Plus", "Plus plan", "Upgrade to Plus", "USD", "per month"]
     found = [kw for kw in keywords if kw in text]
     return "\n".join(found)
+
 
 def main():
     try:
