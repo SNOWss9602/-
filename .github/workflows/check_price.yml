@@ -26,8 +26,8 @@ jobs:
         run: python main.py
 
       - name: Upload screenshot
-        if: always()  # 실패해도 실행
-        uses: actions/upload-artifact@v3
+        if: always()
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: screenshot
           path: |
