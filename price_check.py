@@ -4,11 +4,12 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_stealth import stealth  # selenium-stealth 추가
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 import requests
+import time
 
-# URL 및 Telegram 설정
 URL = "https://openai.com/chatgpt/pricing"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -19,43 +20,58 @@ def send_telegram_message(message):
     requests.post(telegram_api, data=data)
 
 def fetch_price():
-    # Chrome Headless 설정
     options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("--headless")
     options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1280,2000")  # 충분한 해상도 확보
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
+    
+    # selenium-stealth 적용
+    stealth(driver,
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+    )
 
     driver.get(URL)
 
     try:
-        # XPath에 해당하는 요소가 로드될 때까지 최대 20초 대기
+        # 페이지 로딩 대기 (필요시 추가 대기)
+        time.sleep(5)
+
+        # 스크린샷 저장 (디버깅용)
+        screenshot_path = "screenshot.png"
+        driver.save_screenshot(screenshot_path)
+        print(f"📸 스크린샷 저장됨: {screenshot_path}")
+
+        # 가격 요소 대기
         xpath = "//div[contains(@class, 'text-xl') and contains(text(), '$20')]"
-        element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, xpath))
+        element = WebDriverWait(driver, 30).until(
+            EC.visibility_of_element_located((By.XPATH, xpath))
         )
-        price_text = element.text
+
+        price = element.text
         driver.quit()
-        return price_text
+        return price
     except Exception as e:
+        driver.save_screenshot("error_screenshot.png")  # 실패 시도 저장
+        print(f"❌ 가격 정보를 찾지 못했습니다. {e}")
         driver.quit()
-        print("❌ 가격 정보를 찾지 못했습니다.", e)
         return ""
 
 def main():
-    try:
-        price = fetch_price()
-        if price:
-            send_telegram_message(f"✅ 현재 ChatGPT Plus 가격: {price}")
-        else:
-            send_telegram_message("⚠️ 가격 정보를 찾을 수 없습니다. 페이지 구조가 바뀌었을 수 있어요.")
-    except Exception as e:
-        send_telegram_message(f"❌ 에러 발생: {e}")
+    price = fetch_price()
+    if price:
+        send_telegram_message(f"✅ 현재 ChatGPT Plus 가격: {price}")
+    else:
+        send_telegram_message("⚠️ 가격 정보를 찾을 수 없습니다. 페이지 구조가 바뀌었거나 로딩이 안 됐을 수 있어요.")
 
 if __name__ == "__main__":
     main()
-
-
