@@ -5,11 +5,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-import time
 import os
 import requests
 
-# 🎯 정확한 가격 페이지
+# 🎯 정확한 가격 페이지 URL
 URL = "https://openai.com/chatgpt/pricing"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -31,20 +30,26 @@ def fetch_price():
     driver.get(URL)
 
     try:
-        # ⏳ 'Plus' 텍스트가 나올 때까지 대기 (최대 10초)
+        # ⏳ 'Plus' 텍스트가 포함된 요소가 로드될 때까지 대기 (최대 10초)
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Plus')]"))
         )
     except:
         print("❌ 타임아웃: 가격 정보가 로드되지 않았습니다.")
 
-    page_text = driver.find_element(By.TAG_NAME, "body").text
-    driver.quit()
+    # 가격 정보가 들어있는 요소를 정확히 찾아서 텍스트 추출
+    try:
+        # 예시로 'price-value'라는 클래스명을 사용했다고 가정
+        price_elements = driver.find_elements(By.CLASS_NAME, "price-value")
+        prices = [element.text for element in price_elements]
+        driver.quit()
 
-    # 🔍 관심 있는 키워드
-    keywords = ["$20", "20 USD", "ChatGPT Plus", "Plus plan", "per month", "subscription", "Upgrade"]
-    found = [kw for kw in keywords if kw in page_text]
-    return "\n".join(found)
+        return "\n".join(prices)
+
+    except Exception as e:
+        print(f"❌ 가격 정보를 찾는 중 에러 발생: {e}")
+        driver.quit()
+        return ""
 
 def main():
     try:
