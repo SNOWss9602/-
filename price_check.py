@@ -6,7 +6,7 @@ import time
 import os
 import requests
 
-URL = "https://openai.com/chat"
+URL = "https://openai.com/chatgpt/pricing"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
